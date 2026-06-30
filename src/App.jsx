@@ -33,7 +33,10 @@ export default function App() {
       ref={rootRef}
       style={{
         position: 'fixed',
-        inset: 0,
+        top: 'env(safe-area-inset-top)',
+        right: 'env(safe-area-inset-right)',
+        bottom: 'env(safe-area-inset-bottom)',
+        left: 'env(safe-area-inset-left)',
         overflow: 'hidden',
         background: 'var(--bg)',
         color: 'var(--ink)',
@@ -114,7 +117,12 @@ export default function App() {
 
       <Nav navGroup={NAV_GROUP[scene]} blurred={navBlurred} onNavigate={go} />
 
-      <Home active={scene === 'home'} go={go} />
+      <Home
+        active={scene === 'home'}
+        go={go}
+        onScroll={onSceneScroll}
+        sceneRef={(el) => { panelRefs.current.home = el; }}
+      />
       <Work
         active={scene === 'work'}
         go={go}

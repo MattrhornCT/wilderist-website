@@ -3,7 +3,6 @@ import { DEFAULTS, TIME_OF_DAY_GLOW, TIME_OF_DAY_ACCENT } from '../content.js';
 import { autoTimeOfDay, hexToRgba } from '../utils.js';
 import { HOVER_FX } from '../confetti.js';
 
-const TOD_REFRESH_MS = 60_000;
 const IS_TOUCH = 'ontouchstart' in window;
 
 // Drives the persistent lantern backdrop: cursor-as-lantern + viewing-angle (lerped,
@@ -51,8 +50,6 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
       r.style.setProperty('--accent', TIME_OF_DAY_ACCENT[tod]);
     };
     apply();
-    const id = setInterval(apply, TOD_REFRESH_MS);
-    return () => clearInterval(id);
   }, [rootRef]);
 
   // Pointer tracking, idle drift, lerped lantern motion, and confetti hover detection.
@@ -159,7 +156,7 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
     if (!r) return;
 
     const applyRadius = () => {
-      const mobile = window.innerWidth < 600;
+      const mobile = Math.min(window.innerWidth, window.innerHeight) < 600;
       const base = scene === 'breathe' ? Math.round(DEFAULTS.lightRadius * 0.62) : DEFAULTS.lightRadius;
       r.style.setProperty('--lr', (mobile ? Math.round(base * 0.5) : base) + 'px');
     };

@@ -1,6 +1,9 @@
 import SceneShell from '../components/SceneShell.jsx';
+import ccLogo from '../assets/CubeConquest_Logo.png';
+import ccBgPattern from '../assets/CubeConquest_BGPattern.png';
+import hicbCover from '../assets/HICB_Cover.png';
 
-function WorkCard({ onClick, stripeColor, badge, badgeBg, badgeFg, badgeDot, category, title, description, screenshotLabel }) {
+function WorkCard({ onClick, badge, badgeBg, badgeFg, badgeDot, category, title, description, image, imageFit = 'cover', imageBg = '#0b1017', imageBgPattern }) {
   return (
     <div
       onClick={onClick}
@@ -20,25 +23,27 @@ function WorkCard({ onClick, stripeColor, badge, badgeBg, badgeFg, badgeDot, cat
         style={{
           position: 'relative',
           aspectRatio: '16/10',
-          background: `repeating-linear-gradient(135deg, ${stripeColor(0.32)}, ${stripeColor(0.32)} 11px, ${stripeColor(0.16)} 11px, ${stripeColor(0.16)} 22px)`,
+          background: imageBg,
+          backgroundImage: imageBgPattern ? `url(${imageBgPattern})` : undefined,
+          backgroundSize: imageBgPattern ? '180px 180px' : undefined,
+          backgroundRepeat: imageBgPattern ? 'repeat' : undefined,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          overflow: 'hidden',
         }}
       >
-        <span
+        <img
+          src={image}
+          alt=""
           style={{
-            fontFamily: 'ui-monospace, monospace',
-            fontSize: 12,
-            letterSpacing: '.1em',
-            color: 'rgba(20,30,40,.55)',
-            background: 'rgba(255,255,255,.5)',
-            padding: '6px 12px',
-            borderRadius: 4,
+            width: '100%',
+            height: '100%',
+            objectFit: imageFit,
+            objectPosition: 'center',
+            padding: imageFit === 'contain' ? '10%' : 0,
           }}
-        >
-          {screenshotLabel}
-        </span>
+        />
         <span
           style={{
             position: 'absolute',
@@ -109,7 +114,6 @@ export default function Work({ active, go, onScroll, sceneRef }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px,1fr))', gap: 'clamp(18px,2.6vw,28px)' }}>
           <WorkCard
             onClick={() => go('cube')}
-            stripeColor={(a) => `rgba(139,166,192,${a})`}
             badge="Playable now"
             badgeBg="#9aab6b"
             badgeFg="#16190c"
@@ -117,11 +121,13 @@ export default function Work({ active, go, onScroll, sceneRef }) {
             category="Digital · Browser"
             title="Cube Conquest"
             description="A bite-sized strategy game you can play right now in your browser. Claim the board cube by cube."
-            screenshotLabel="CUBE CONQUEST — screenshot"
+            image={ccLogo}
+            imageFit="contain"
+            imageBg="#0d1520"
+            imageBgPattern={ccBgPattern}
           />
           <WorkCard
             onClick={() => go('breathe')}
-            stripeColor={(a) => `rgba(154,171,107,${a})`}
             badge="In development"
             badgeBg="rgba(255,255,255,.6)"
             badgeFg="#241f16"
@@ -129,7 +135,8 @@ export default function Work({ active, go, onScroll, sceneRef }) {
             category="Tabletop · 2026"
             title="Help! I Can't Breathe"
             description="A procedurally generated board game of exploration and resource management. Every table tells a different story."
-            screenshotLabel="BOARD GAME — prototype art"
+            image={hicbCover}
+            imageFit="cover"
           />
         </div>
       </div>
