@@ -4,6 +4,7 @@ import { autoTimeOfDay, hexToRgba } from '../utils.js';
 import { HOVER_FX } from '../confetti.js';
 
 const TOD_REFRESH_MS = 60_000;
+const IS_TOUCH = 'ontouchstart' in window;
 
 // Drives the persistent lantern backdrop: cursor-as-lantern + viewing-angle (lerped,
 // with idle drift), the time-of-day glow/accent, confetti hover pops, and the
@@ -21,6 +22,9 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
   const idleStartTime = useRef(0);
   const wanderPhaseX = useRef(0);
   const wanderPhaseY = useRef(0);
+  // On touch devices run at ~30fps to halve GPU pressure and prevent iOS
+  // from killing the tab under memory pressure.
+  const frameSkip = useRef(0);
 
   // Static motion/light knobs — set once, baked from the settled tweak values.
   useEffect(() => {
@@ -78,6 +82,9 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
     };
 
     const checkHover = () => {
+      // Touch devices: the "cursor" is wherever the user last lifted their finger,
+      // which causes confetti to fire as pieces drift over that stale point. Skip it.
+      if (IS_TOUCH) return;
       const els = document.elementsFromPoint(ptr.current.x, ptr.current.y);
       let cube = null;
       for (const el of els) {
@@ -88,6 +95,14 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
 
     let raf;
     const loop = () => {
+      raf = requestAnimationFrame(loop);
+
+      // Throttle to ~30fps on touch devices to reduce GPU load.
+      if (IS_TOUCH) {
+        frameSkip.current = (frameSkip.current + 1) % 2;
+        if (frameSkip.current !== 0) return;
+      }
+
       const now = performance.now();
       const idle = now - lastMove.current > 1700;
       let tx = ptr.current.x;
@@ -126,7 +141,6 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
         lastHover.current = now;
         checkHover();
       }
-      raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
 
@@ -139,14 +153,23 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
 
   // Per-scene readability: dim the spotlight and/or frost the backdrop away from
   // Home, plus a tighter spotlight on the Breathe page (limited-visibility feel).
+  // Also halves the radius on mobile to keep the lantern proportional to screen size.
   useEffect(() => {
     const r = rootRef.current;
     if (!r) return;
+
+    const applyRadius = () => {
+      const mobile = window.innerWidth < 600;
+      const base = scene === 'breathe' ? Math.round(DEFAULTS.lightRadius * 0.62) : DEFAULTS.lightRadius;
+      r.style.setProperty('--lr', (mobile ? Math.round(base * 0.5) : base) + 'px');
+    };
+
     const offHome = scene !== 'home';
     const mode = DEFAULTS.contentMode;
     const dimOn = offHome && (mode === 'Dim spotlight' || mode === 'Both');
     r.style.setProperty('--li', String(dimOn ? DEFAULTS.lightIntensity * DEFAULTS.spotlightDim : DEFAULTS.lightIntensity));
-    r.style.setProperty('--lr', (scene === 'breathe' ? Math.round(DEFAULTS.lightRadius * 0.62) : DEFAULTS.lightRadius) + 'px');
+    applyRadius();
+    window.addEventListener('resize', applyRadius);
 
     if (scrimRef.current) {
       scrimRef.current.style.opacity = scene === 'home' ? '0' : String(DEFAULTS.contentDim);
@@ -157,6 +180,8 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
       frostRef.current.style.backdropFilter = fv;
       frostRef.current.style.webkitBackdropFilter = fv;
     }
+
+    return () => window.removeEventListener('resize', applyRadius);
   }, [scene, rootRef, scrimRef, frostRef]);
 
   const onSceneScroll = useCallback((e) => {
