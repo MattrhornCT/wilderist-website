@@ -125,8 +125,11 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
       cur.current.y += (ty - cur.current.y) * 0.07;
       const r = rootRef.current;
       if (r) {
-        r.style.setProperty('--mx', cur.current.x + 'px');
-        r.style.setProperty('--my', cur.current.y + 'px');
+        // --mx/--my only drive the CSS mask which is disabled on touch devices.
+        if (!IS_TOUCH) {
+          r.style.setProperty('--mx', cur.current.x + 'px');
+          r.style.setProperty('--my', cur.current.y + 'px');
+        }
         r.style.setProperty('--rx', (cur.current.x / window.innerWidth - 0.5).toFixed(4));
         r.style.setProperty('--ry', (cur.current.y / window.innerHeight - 0.5).toFixed(4));
       }

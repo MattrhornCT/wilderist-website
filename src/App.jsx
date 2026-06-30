@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+const IS_TOUCH = 'ontouchstart' in window;
 import Backdrop from './components/Backdrop.jsx';
 import Nav from './components/Nav.jsx';
 import Home from './scenes/Home.jsx';
@@ -44,17 +45,22 @@ export default function App() {
     >
       <Backdrop />
 
-      {/* dark veil with light hole */}
+      {/* dark veil with light hole — on touch devices use a static radial gradient
+          instead of an animated CSS mask to avoid per-frame GPU texture uploads
+          that cause iOS Safari to kill the tab from memory pressure. */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           zIndex: 2,
-          background: 'var(--bg)',
-          opacity: 'var(--veil)',
-          WebkitMask:
-            'radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,42%), transparent 0%, transparent 28%, #000 70%)',
-          mask: 'radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,42%), transparent 0%, transparent 28%, #000 70%)',
+          ...(IS_TOUCH ? {
+            background: 'radial-gradient(circle 38% at 50% 42%, transparent 0%, transparent 10%, rgba(10,14,21,.82) 55%, rgba(10,14,21,.96) 100%)',
+          } : {
+            background: 'var(--bg)',
+            opacity: 'var(--veil)',
+            WebkitMask: 'radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,42%), transparent 0%, transparent 28%, #000 70%)',
+            mask: 'radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,42%), transparent 0%, transparent 28%, #000 70%)',
+          }),
         }}
       />
       {/* warm glow */}
@@ -96,19 +102,22 @@ export default function App() {
           background: 'radial-gradient(130% 100% at 50% 36%, transparent 55%, rgba(8,11,17,.5) 100%)',
         }}
       />
-      {/* frost: blurs the whole backdrop (incl. spotlight) on content scenes for readability */}
-      <div
-        ref={frostRef}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 4,
-          pointerEvents: 'none',
-          transition: 'backdrop-filter var(--ts) ease',
-          backdropFilter: 'none',
-          WebkitBackdropFilter: 'none',
-        }}
-      />
+      {/* frost: blurs the whole backdrop on content scenes for readability.
+          Disabled on touch devices — backdropFilter is a major GPU cost on iOS. */}
+      {!IS_TOUCH && (
+        <div
+          ref={frostRef}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 4,
+            pointerEvents: 'none',
+            transition: 'backdrop-filter var(--ts) ease',
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+          }}
+        />
+      )}
 
       {/* Top and bottom edge fades — blend content into the safe area background colour
           so the boundary looks like a deliberate fade rather than an abrupt line. */}
