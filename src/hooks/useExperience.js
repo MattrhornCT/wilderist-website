@@ -21,8 +21,6 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
   const idleStartTime = useRef(0);
   const wanderPhaseX = useRef(0);
   const wanderPhaseY = useRef(0);
-  // On touch devices run at ~10fps to cut GPU pressure. The wander drift is
-  // slow enough that 10fps is imperceptible.
   const frameSkip = useRef(0);
 
   // Static motion/light knobs — set once, baked from the settled tweak values.
@@ -97,12 +95,6 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
       // Pause entirely when the tab is hidden (screen locked, app switched).
       if (document.hidden) return;
 
-      // Throttle to ~10fps on touch devices — wander is slow enough to look
-      // fine, and it cuts GPU load 6x vs 60fps to prevent iOS from killing the tab.
-      if (IS_TOUCH) {
-        frameSkip.current = (frameSkip.current + 1) % 6;
-        if (frameSkip.current !== 0) return;
-      }
 
       const now = performance.now();
       const idle = now - lastMove.current > 1700;
