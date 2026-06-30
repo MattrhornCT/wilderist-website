@@ -12,7 +12,7 @@ const IS_TOUCH = 'ontouchstart' in window;
 // so the 60fps loop never triggers a re-render.
 export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
   const [navBlurred, setNavBlurred] = useState(false);
-  const initY = IS_TOUCH ? window.innerHeight * 0.30 : window.innerHeight * 0.42;
+  const initY = IS_TOUCH ? window.innerHeight * 0.17 : window.innerHeight * 0.42;
   const ptr = useRef({ x: window.innerWidth / 2, y: initY });
   const cur = useRef({ ...ptr.current });
   const lastMove = useRef(0);

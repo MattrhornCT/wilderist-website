@@ -43,7 +43,19 @@ export default function App() {
         WebkitFontSmoothing: 'antialiased',
       }}
     >
-      <Backdrop />
+      {/* Clip animated backdrop content to the viewable area between the edge gradients
+          so confetti and glow blobs don't render behind the top/bottom fades. */}
+      <div style={{
+        position: 'absolute',
+        top: 'calc(env(safe-area-inset-top) + 48px)',
+        right: 0,
+        bottom: 'calc(env(safe-area-inset-bottom) + 40px)',
+        left: 0,
+        overflow: 'hidden',
+        zIndex: 1,
+      }}>
+        <Backdrop />
+      </div>
 
       {/* dark veil with light hole — mask only updates when RAF is running,
           which on mobile only happens during/after touch interaction. */}
