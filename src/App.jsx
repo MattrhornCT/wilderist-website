@@ -52,7 +52,6 @@ export default function App() {
           zIndex: 2,
           background: 'var(--bg)',
           opacity: 'var(--veil)',
-          willChange: 'mask',
           WebkitMask:
             'radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,42%), transparent 0%, transparent 28%, #000 70%)',
           mask: 'radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,42%), transparent 0%, transparent 28%, #000 70%)',
@@ -72,7 +71,6 @@ export default function App() {
           mixBlendMode: 'screen',
           opacity: 'var(--li)',
           background: 'radial-gradient(circle, var(--glow), transparent 62%)',
-          willChange: 'left, top',
         }}
       />
       {/* content scrim (darkens backdrop on content scenes) */}
