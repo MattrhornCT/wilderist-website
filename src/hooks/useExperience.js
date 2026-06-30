@@ -17,6 +17,10 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
   const lastMove = useRef(0);
   const lastHover = useRef(0);
   const hoverCube = useRef(null);
+  const idleStarted = useRef(false);
+  const idleStartTime = useRef(0);
+  const wanderPhaseX = useRef(0);
+  const wanderPhaseY = useRef(0);
 
   // Static motion/light knobs — set once, baked from the settled tweak values.
   useEffect(() => {
@@ -89,12 +93,25 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
       let tx = ptr.current.x;
       let ty = ptr.current.y;
       if (idle && DEFAULTS.idleDrift) {
-        const t = now * 0.001 * DEFAULTS.driftSpeed;
-        tx = window.innerWidth * (0.5 + 0.28 * Math.sin(t * 0.5));
-        ty = window.innerHeight * (0.42 + 0.22 * Math.sin(t * 0.78 + 1.2));
-      } else if (idle) {
-        tx = cur.current.x;
-        ty = cur.current.y;
+        if (!idleStarted.current) {
+          // Compute phase offsets so the wander sine starts exactly at cur's
+          // current position — no jump when cursor-tracking hands off to drift.
+          idleStarted.current = true;
+          idleStartTime.current = now;
+          const nx = cur.current.x / window.innerWidth;
+          const ny = cur.current.y / window.innerHeight;
+          wanderPhaseX.current = Math.asin(Math.max(-1, Math.min(1, (nx - 0.5) / 0.28)));
+          wanderPhaseY.current = Math.asin(Math.max(-1, Math.min(1, (ny - 0.42) / 0.22))) - 1.2;
+        }
+        const t = (now - idleStartTime.current) * 0.001 * DEFAULTS.driftSpeed;
+        tx = window.innerWidth * (0.5 + 0.28 * Math.sin(t * 0.5 + wanderPhaseX.current));
+        ty = window.innerHeight * (0.42 + 0.22 * Math.sin(t * 0.78 + 1.2 + wanderPhaseY.current));
+      } else {
+        idleStarted.current = false;
+        if (idle) {
+          tx = cur.current.x;
+          ty = cur.current.y;
+        }
       }
       cur.current.x += (tx - cur.current.x) * 0.07;
       cur.current.y += (ty - cur.current.y) * 0.07;
