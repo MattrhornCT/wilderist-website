@@ -45,22 +45,17 @@ export default function App() {
     >
       <Backdrop />
 
-      {/* dark veil with light hole — on touch devices use a static radial gradient
-          instead of an animated CSS mask to avoid per-frame GPU texture uploads
-          that cause iOS Safari to kill the tab from memory pressure. */}
+      {/* dark veil with light hole — mask only updates when RAF is running,
+          which on mobile only happens during/after touch interaction. */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           zIndex: 2,
-          ...(IS_TOUCH ? {
-            background: 'radial-gradient(circle 38% at 50% 42%, transparent 0%, transparent 10%, rgba(10,14,21,.82) 55%, rgba(10,14,21,.96) 100%)',
-          } : {
-            background: 'var(--bg)',
-            opacity: 'var(--veil)',
-            WebkitMask: 'radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,42%), transparent 0%, transparent 28%, #000 70%)',
-            mask: 'radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,42%), transparent 0%, transparent 28%, #000 70%)',
-          }),
+          background: 'var(--bg)',
+          opacity: 'var(--veil)',
+          WebkitMask: 'radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,42%), transparent 0%, transparent 28%, #000 70%)',
+          mask: 'radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,42%), transparent 0%, transparent 28%, #000 70%)',
         }}
       />
       {/* warm glow */}

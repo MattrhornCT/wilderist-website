@@ -12,7 +12,8 @@ const IS_TOUCH = 'ontouchstart' in window;
 // so the 60fps loop never triggers a re-render.
 export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
   const [navBlurred, setNavBlurred] = useState(false);
-  const ptr = useRef({ x: window.innerWidth / 2, y: window.innerHeight * 0.42 });
+  const initY = IS_TOUCH ? window.innerHeight * 0.30 : window.innerHeight * 0.42;
+  const ptr = useRef({ x: window.innerWidth / 2, y: initY });
   const cur = useRef({ ...ptr.current });
   const lastMove = useRef(0);
   const lastHover = useRef(0);
@@ -57,6 +58,8 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
       ptr.current.x = t.clientX;
       ptr.current.y = t.clientY;
       lastMove.current = performance.now();
+      // On touch: wake the RAF loop if it's not running.
+      if (IS_TOUCH && !raf) startLoop();
     };
     window.addEventListener('mousemove', onMove, { passive: true });
     window.addEventListener('touchmove', onMove, { passive: true });
@@ -88,22 +91,24 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
       popConfetti(cube);
     };
 
-    let raf;
+    // On touch devices the loop is demand-driven: it starts on touch and stops
+    // automatically once cur has settled (~1s after the last interaction).
+    // This means zero RAF activity — and zero GPU work — when the user is idle.
+    let raf = null;
+
     const loop = () => {
-      raf = requestAnimationFrame(loop);
-
-      // Pause entirely when the tab is hidden (screen locked, app switched).
-      if (document.hidden) return;
-
+      if (document.hidden) { raf = null; return; }
 
       const now = performance.now();
-      const idle = now - lastMove.current > 1700;
+      const timeSinceMove = now - lastMove.current;
+      const idle = timeSinceMove > 1700;
+
       let tx = ptr.current.x;
       let ty = ptr.current.y;
-      if (idle && DEFAULTS.idleDrift) {
+
+      if (!IS_TOUCH && idle && DEFAULTS.idleDrift) {
+        // Desktop only: wander while idle.
         if (!idleStarted.current) {
-          // Compute phase offsets so the wander sine starts exactly at cur's
-          // current position — no jump when cursor-tracking hands off to drift.
           idleStarted.current = true;
           idleStartTime.current = now;
           const nx = cur.current.x / window.innerWidth;
@@ -116,32 +121,45 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
         ty = window.innerHeight * (0.42 + 0.22 * Math.sin(t * 0.78 + 1.2 + wanderPhaseY.current));
       } else {
         idleStarted.current = false;
-        if (idle) {
-          tx = cur.current.x;
-          ty = cur.current.y;
-        }
+        if (idle) { tx = cur.current.x; ty = cur.current.y; }
       }
+
       cur.current.x += (tx - cur.current.x) * 0.07;
       cur.current.y += (ty - cur.current.y) * 0.07;
+
       const r = rootRef.current;
       if (r) {
-        // --mx/--my only drive the CSS mask which is disabled on touch devices.
-        if (!IS_TOUCH) {
-          r.style.setProperty('--mx', cur.current.x + 'px');
-          r.style.setProperty('--my', cur.current.y + 'px');
-        }
+        r.style.setProperty('--mx', cur.current.x + 'px');
+        r.style.setProperty('--my', cur.current.y + 'px');
         r.style.setProperty('--rx', (cur.current.x / window.innerWidth - 0.5).toFixed(4));
         r.style.setProperty('--ry', (cur.current.y / window.innerHeight - 0.5).toFixed(4));
       }
+
       if (now - lastHover.current > 70) {
         lastHover.current = now;
         checkHover();
       }
+
+      // On touch: stop the loop once cur has fully settled so the GPU goes idle.
+      const settled = Math.abs(cur.current.x - tx) < 0.5 && Math.abs(cur.current.y - ty) < 0.5;
+      if (IS_TOUCH && timeSinceMove > 1000 && settled) {
+        raf = null;
+        return;
+      }
+
+      raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
+
+    const startLoop = () => {
+      if (!raf) raf = requestAnimationFrame(loop);
+    };
+
+    // Desktop always runs; mobile starts paused and wakes on touch.
+    if (!IS_TOUCH) startLoop();
 
     return () => {
-      cancelAnimationFrame(raf);
+      if (raf) cancelAnimationFrame(raf);
+      raf = null;
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('touchmove', onMove);
     };
