@@ -33,10 +33,7 @@ export default function App() {
       ref={rootRef}
       style={{
         position: 'fixed',
-        top: 'env(safe-area-inset-top)',
-        right: 'env(safe-area-inset-right)',
-        bottom: 'env(safe-area-inset-bottom)',
-        left: 'env(safe-area-inset-left)',
+        inset: 0,
         overflow: 'hidden',
         background: 'var(--bg)',
         color: 'var(--ink)',
@@ -115,42 +112,55 @@ export default function App() {
         }}
       />
 
-      <Nav navGroup={NAV_GROUP[scene]} blurred={navBlurred} onNavigate={go} />
+      {/* Content layer — inset from iOS safe areas so nothing hides behind notch or home bar.
+          Visual layers above (backdrop, veil, glow, scrim, frost) stay full-bleed. */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 'env(safe-area-inset-top)',
+          right: 'env(safe-area-inset-right)',
+          bottom: 'env(safe-area-inset-bottom)',
+          left: 'env(safe-area-inset-left)',
+          zIndex: 5,
+        }}
+      >
+        <Nav navGroup={NAV_GROUP[scene]} blurred={navBlurred} onNavigate={go} />
 
-      <Home
-        active={scene === 'home'}
-        go={go}
-        onScroll={onSceneScroll}
-        sceneRef={(el) => { panelRefs.current.home = el; }}
-      />
-      <Work
-        active={scene === 'work'}
-        go={go}
-        onScroll={onSceneScroll}
-        sceneRef={(el) => { panelRefs.current.work = el; }}
-      />
-      <CubeConquest
-        active={scene === 'cube'}
-        go={go}
-        onScroll={onSceneScroll}
-        sceneRef={(el) => { panelRefs.current.cube = el; }}
-      />
-      <Breathe
-        active={scene === 'breathe'}
-        go={go}
-        onScroll={onSceneScroll}
-        sceneRef={(el) => { panelRefs.current.breathe = el; }}
-      />
-      <Studio
-        active={scene === 'studio'}
-        onScroll={onSceneScroll}
-        sceneRef={(el) => { panelRefs.current.studio = el; }}
-      />
-      <Contact
-        active={scene === 'contact'}
-        onScroll={onSceneScroll}
-        sceneRef={(el) => { panelRefs.current.contact = el; }}
-      />
+        <Home
+          active={scene === 'home'}
+          go={go}
+          onScroll={onSceneScroll}
+          sceneRef={(el) => { panelRefs.current.home = el; }}
+        />
+        <Work
+          active={scene === 'work'}
+          go={go}
+          onScroll={onSceneScroll}
+          sceneRef={(el) => { panelRefs.current.work = el; }}
+        />
+        <CubeConquest
+          active={scene === 'cube'}
+          go={go}
+          onScroll={onSceneScroll}
+          sceneRef={(el) => { panelRefs.current.cube = el; }}
+        />
+        <Breathe
+          active={scene === 'breathe'}
+          go={go}
+          onScroll={onSceneScroll}
+          sceneRef={(el) => { panelRefs.current.breathe = el; }}
+        />
+        <Studio
+          active={scene === 'studio'}
+          onScroll={onSceneScroll}
+          sceneRef={(el) => { panelRefs.current.studio = el; }}
+        />
+        <Contact
+          active={scene === 'contact'}
+          onScroll={onSceneScroll}
+          sceneRef={(el) => { panelRefs.current.contact = el; }}
+        />
+      </div>
     </div>
   );
 }
