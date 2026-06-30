@@ -114,12 +114,15 @@ export default function App() {
         />
       )}
 
-      {/* Top and bottom edge fades — blend content into the safe area background colour
-          so the boundary looks like a deliberate fade rather than an abrupt line. */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 8, pointerEvents: 'none',
-        background: 'linear-gradient(to bottom, #0a0e15 0%, transparent calc(env(safe-area-inset-top) + 48px))' }} />
-      <div style={{ position: 'absolute', inset: 0, zIndex: 8, pointerEvents: 'none',
-        background: 'linear-gradient(to top, #0a0e15 0%, transparent calc(env(safe-area-inset-bottom) + 40px))' }} />
+      {/* Top and bottom edge fades — mobile only. Blends content into the safe area
+          background colour so the boundary looks intentional. Hidden on desktop
+          where env() insets are 0 and the gradient would just be a dark bar. */}
+      {IS_TOUCH && <>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 8, pointerEvents: 'none',
+          background: 'linear-gradient(to bottom, #0a0e15 0%, transparent calc(env(safe-area-inset-top) + 48px))' }} />
+        <div style={{ position: 'absolute', inset: 0, zIndex: 8, pointerEvents: 'none',
+          background: 'linear-gradient(to top, #0a0e15 0%, transparent calc(env(safe-area-inset-bottom) + 40px))' }} />
+      </>}
 
       {/* Content layer — inset from iOS safe areas so nothing hides behind notch or home bar.
           Visual layers above (backdrop, veil, glow, scrim, frost) stay full-bleed. */}
