@@ -34,6 +34,10 @@ export function useExperience({ rootRef, scrimRef, frostRef, scene }) {
     r.style.setProperty('--ts', DEFAULTS.transitionSpeed + 's');
     r.style.setProperty('--cdim', String(DEFAULTS.contentDim));
     r.style.setProperty('--veil', String(DEFAULTS.darkness));
+    // On mobile the RAF only starts on touch, so seed the spotlight position
+    // immediately so it doesn't sit at the CSS default (42%) on first load.
+    r.style.setProperty('--mx', ptr.current.x + 'px');
+    r.style.setProperty('--my', ptr.current.y + 'px');
   }, [rootRef]);
 
   // Time-of-day glow + accent, refreshed periodically so a long-open tab drifts
