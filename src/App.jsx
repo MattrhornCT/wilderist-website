@@ -97,22 +97,19 @@ export default function App() {
           background: 'radial-gradient(130% 100% at 50% 36%, transparent 55%, rgba(8,11,17,.5) 100%)',
         }}
       />
-      {/* frost: blurs the whole backdrop on content scenes for readability.
-          Disabled on touch devices — backdropFilter is a major GPU cost on iOS. */}
-      {!IS_TOUCH && (
-        <div
-          ref={frostRef}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 4,
-            pointerEvents: 'none',
-            transition: 'backdrop-filter var(--ts) ease',
-            backdropFilter: 'none',
-            WebkitBackdropFilter: 'none',
-          }}
-        />
-      )}
+      {/* frost: blurs the whole backdrop on content scenes for readability */}
+      <div
+        ref={frostRef}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 4,
+          pointerEvents: 'none',
+          transition: 'backdrop-filter var(--ts) ease',
+          backdropFilter: 'none',
+          WebkitBackdropFilter: 'none',
+        }}
+      />
 
       {/* Top and bottom edge fades — mobile only. Blends content into the safe area
           background colour so the boundary looks intentional. Hidden on desktop
